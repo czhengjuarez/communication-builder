@@ -1,0 +1,23 @@
+name = "communication-builder-api"
+main = "src/index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+ENVIRONMENT = "production"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "communication-builder-db"
+database_id = "3261e40e-0133-4f8c-ac68-687250afd57f"
+
+[ai]
+binding = "AI"
+
+[build]
+command = ""
+
+[env.production.vars]
+ENVIRONMENT = "production"
+
+[env.staging.vars]
+ENVIRONMENT = "staging"

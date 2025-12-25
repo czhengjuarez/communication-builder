@@ -1,0 +1,9 @@
+name = "communication-builder"
+main = "workers-site/index.js"
+compatibility_date = "2024-01-01"
+
+[site]
+bucket = "./dist"
+
+[vars]
+ENVIRONMENT = "production"
