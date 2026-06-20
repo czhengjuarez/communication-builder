@@ -672,7 +672,7 @@ async function enhanceTemplate(env, data, corsHeaders) {
     ? `${basePrompt}\n\nAdditional context: ${context}\n\nTemplate:\n${content}`
     : `${basePrompt}\n\nTemplate:\n${content}`
 
-  const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+  const response = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
     messages: [
       {
         role: 'system',
