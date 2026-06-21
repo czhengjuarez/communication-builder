@@ -9,18 +9,18 @@
 **Live App:** https://communication-builder.coscient.workers.dev  
 **Backend API:** https://communication-builder-api.coscient.workers.dev
 
-A modern React application with Cloudflare Workers AI that helps you create, customize, and enhance communication templates for various professional scenarios. Transformed from a flat HTML file into a full-stack, production-ready application.
+A modern React application with Cloudflare Workers AI that helps you create, customize, and enhance communication templates for various professional scenarios.
 
 ---
 
 ## ✨ Features
 
 ### 🎯 Core Template System
-- **12 Pre-built System Templates** across 4 categories:
+- **11 Pre-built System Templates** across 4 categories:
   - **DesignOps Intro** (4 templates): Team introductions, 1:1 requests, cross-functional intros, role shifts
   - **Project Updates** (2 templates): Status updates, milestone announcements
   - **Feedback Requests** (2 templates): Design reviews, user testing feedback
-  - **Change Management** (4 templates): General changes, process changes, tool migrations
+  - **Change Management** (3 templates): General changes, process changes, tool migrations
 - **Dual Format Support**: Every template has both Email and Chat versions
 - **Editable Templates**: Customize any template inline with live preview
 - **Copy to Clipboard**: One-click copy for easy pasting into email/chat
@@ -42,24 +42,24 @@ A modern React application with Cloudflare Workers AI that helps you create, cus
   - Improve Clarity 🎯
   - Fix Grammar & Style ✅
 - **Context-Aware**: Add custom context for better results
-- **Powered by Llama 3.1 8B**
+- **Powered by Llama 3.3 70B fp8-fast**
 
 ### 📝 User-Generated Templates
 - **Create Custom Templates**: Build your own templates from scratch with full form validation
-- **Persistent Storage**: All custom templates saved in Cloudflare D1 database
+- **Persistent Storage**: All custom templates saved in Cloudflare KV
 - **Full CRUD Operations**: Create, read, update, and delete your templates
 - **System Template Reference**: Optionally link custom templates to system templates
 - **Unlimited Templates**: No limit on custom template creation
 - **Category Organization**: Organize custom templates into existing categories
 
 ### 🎨 Design System
-- **Consistent with AgentBriefing**:
-  - Primary: `#8E1F5A` (maroon)
-  - Secondary: `#DD388B` (pink)
-  - Dark Background: `#0D1533` (navy)
+- **Keel design tokens** (Ops Forward):
+  - Primary: `#80074D` (magenta-600)
+  - Secondary: `#A60E64` (magenta-500)
+  - Dark Background: `#0B0810` (gray-950)
+  - Fonts: Space Grotesk (headings) + Inter (body)
 - **Dark Mode**: Full dark mode support with persistence
 - **Responsive**: Mobile-first design
-- **Modern UI**: Tailwind CSS with smooth transitions
 
 ## 🏗️ Architecture
 
@@ -76,13 +76,11 @@ A modern React application with Cloudflare Workers AI that helps you create, cus
 │  ├── PUT /api/templates/:id                  │
 │  ├── DELETE /api/templates/:id               │
 │  └── POST /api/ai/enhance-template           │
-│  ↓                                            │
-│  Cloudflare AI (Llama 3.1 8B)                │
-│  ↓                                            │
-│  D1 Database (SQLite)                         │
-│  ├── system_templates (12 templates)         │
-│  ├── user_templates (custom)                 │
-│  └── ai_enhancements (analytics)             │
+│  ↓                               ↓           │
+│  Cloudflare AI                  KV Storage   │
+│  (Llama 3.3 70B fp8-fast)       user_templates│
+│                                               │
+│  System templates: bundled in Worker (no DB) │
 │                                               │
 └─────────────────────────────────────────────┘
 ```
@@ -93,12 +91,12 @@ A modern React application with Cloudflare Workers AI that helps you create, cus
 - **React 19** - UI framework
 - **Vite 7** - Build tool & dev server
 - **Tailwind CSS 3.4** - Styling
-- **Modern JavaScript** - ES modules
+- **Space Grotesk + Inter** - Keel design system fonts
 
 ### Backend
 - **Cloudflare Workers** - Serverless compute
-- **Cloudflare D1** - SQLite database
-- **Cloudflare AI** - Llama 3.1 8B model
+- **Cloudflare KV** - User template storage
+- **Cloudflare AI** - Llama 3.3 70B fp8-fast model
 - **REST API** - JSON endpoints
 
 ## 🚀 Getting Started
@@ -113,7 +111,7 @@ A modern React application with Cloudflare Workers AI that helps you create, cus
 
 1. **Clone and navigate**
    ```bash
-   cd CommunicationBuilder
+   cd communication-builder
    ```
 
 2. **Install frontend dependencies**
@@ -128,18 +126,18 @@ A modern React application with Cloudflare Workers AI that helps you create, cus
    npm install
    ```
 
-4. **Set up Cloudflare D1 Database**
+4. **Create a KV namespace**
    ```bash
-   # Create database
-   wrangler d1 create communication-builder-db
-   
-   # Copy the database_id from output and update worker/wrangler.toml
-   
-   # Run schema
-   wrangler d1 execute communication-builder-db --file=schema.sql
-   
-   # Seed with templates
-   wrangler d1 execute communication-builder-db --file=seed.sql
+   cd worker
+   wrangler kv namespace create "TEMPLATES"
+   # Copy the id from output and update worker/wrangler.toml
+   ```
+
+   Update `worker/wrangler.toml`:
+   ```toml
+   [[kv_namespaces]]
+   binding = "TEMPLATES"
+   id = "YOUR_KV_NAMESPACE_ID"
    ```
 
 5. **Create frontend .env file**
@@ -168,38 +166,26 @@ A modern React application with Cloudflare Workers AI that helps you create, cus
 3. **Open browser**
    Navigate to `http://localhost:5173`
 
-## 📊 Database Schema
+## 📊 Data Storage
 
-### system_templates
-- `id` - Unique identifier
-- `category` - Template category
-- `scenario` - Scenario name
-- `title` - Display title
-- `email_content` - Email format template
-- `chat_content` - Chat format template
-- `created_at` - Timestamp
+### System templates
+Bundled as a static JS constant in [worker/src/index.js](worker/src/index.js) — no database read required. 11 templates across 4 categories. To add or change system templates, edit the `SYSTEM_TEMPLATES` array directly.
 
-### user_templates
-- `id` - Unique identifier
-- `user_id` - User identifier (future)
-- `category` - Template category
-- `scenario` - Scenario name
-- `title` - Display title
-- `email_content` - Email format template
-- `chat_content` - Chat format template
-- `based_on_template_id` - Reference to system template
-- `created_at` - Timestamp
-- `updated_at` - Timestamp
+### User templates
+Stored in Cloudflare KV (`TEMPLATES` namespace). One key per template, value is JSON. Fields:
 
-### ai_enhancements
-- `id` - Unique identifier
-- `template_id` - Reference to template
-- `original_content` - Original text
-- `enhanced_content` - AI-enhanced text
-- `enhancement_type` - Type of enhancement
-- `context` - User-provided context
-- `user_feedback` - Feedback (future)
-- `created_at` - Timestamp
+| Field | Type | Notes |
+|---|---|---|
+| `id` | string | `{timestamp}-{random}` |
+| `category` | string | One of the 4 categories |
+| `scenario` | string | Scenario name |
+| `title` | string | Display title |
+| `email_content` | string | Long-form email version |
+| `chat_content` | string | Short Slack/chat version |
+| `based_on_template_id` | string \| null | Source system template |
+| `is_user_template` | `1` | Always 1 for user templates |
+| `created_at` | ISO 8601 | |
+| `updated_at` | ISO 8601 | |
 
 ## 🔌 API Endpoints
 
@@ -230,7 +216,7 @@ A modern React application with Cloudflare Workers AI that helps you create, cus
 ### AI Enhancement
 
 **POST /api/ai/enhance-template**
-- Enhances template using AI
+- Enhances template using Llama 3.3 70B fp8-fast
 - Body: `{ content, enhancementType, context? }`
 - Enhancement types: `make_formal`, `make_casual`, `make_empathetic`, `shorten`, `expand`, `simplify`, `improve_clarity`, `fix_grammar`
 - Response: `{ enhanced: string }`
@@ -239,38 +225,25 @@ A modern React application with Cloudflare Workers AI that helps you create, cus
 
 ### Backend Worker
 
-1. **Update wrangler.toml with your database ID**
-   ```toml
-   [[d1_databases]]
-   binding = "DB"
-   database_name = "communication-builder-db"
-   database_id = "YOUR_DATABASE_ID_HERE"
-   ```
-
-2. **Deploy worker**
+1. **Deploy worker**
    ```bash
    cd worker
    wrangler deploy
    ```
 
-3. **Note your worker URL** (e.g., `https://communication-builder-api.YOUR_SUBDOMAIN.workers.dev`)
+2. **Note your worker URL** (e.g., `https://communication-builder-api.YOUR_SUBDOMAIN.workers.dev`)
 
 ### Frontend
 
 1. **Update production API URL**
    ```bash
    cd frontend
-   # Create .env.production
    echo "VITE_API_URL=https://communication-builder-api.YOUR_SUBDOMAIN.workers.dev" > .env.production
    ```
 
-2. **Build frontend**
+2. **Build and deploy**
    ```bash
    npm run build
-   ```
-
-3. **Deploy to Cloudflare Pages** (or any static host)
-   ```bash
    wrangler pages deploy dist
    ```
 
@@ -279,9 +252,9 @@ A modern React application with Cloudflare Workers AI that helps you create, cus
 ### Cloudflare Workers Free Tier
 - ✅ 100,000 requests/day
 - ✅ 10ms CPU time per request
-- ✅ 5GB D1 storage
-- ✅ 5M D1 reads/day
-- ✅ 100K D1 writes/day
+- ✅ 1GB KV storage
+- ✅ 100K KV reads/day
+- ✅ 1K KV writes/day
 - ✅ 10,000 AI neurons/day (~10-15 enhancements)
 
 **Expected Cost**: $0/month for moderate usage
@@ -289,9 +262,8 @@ A modern React application with Cloudflare Workers AI that helps you create, cus
 ### Cloudflare Workers Paid ($5/month)
 - ✅ 10M requests/month
 - ✅ 50ms CPU time per request
-- ✅ Unlimited D1 storage
-- ✅ Unlimited D1 reads
-- ✅ 1M D1 writes
+- ✅ Unlimited KV reads
+- ✅ 1M KV writes/month
 - ✅ 10,000 AI neurons/day
 
 **Expected Cost**: $5/month for heavy usage
@@ -299,7 +271,7 @@ A modern React application with Cloudflare Workers AI that helps you create, cus
 ## 📁 Project Structure
 
 ```
-CommunicationBuilder/
+communication-builder/
 ├── frontend/                    # React application
 │   ├── src/
 │   │   ├── components/
@@ -323,30 +295,28 @@ CommunicationBuilder/
 │
 ├── worker/                      # Cloudflare Worker API
 │   ├── src/
-│   │   └── index.js                      # API routes
-│   ├── schema.sql                        # Database schema
-│   ├── seed.sql                          # Template data
+│   │   └── index.js             # API routes + system templates
 │   ├── package.json
 │   └── wrangler.toml
 │
-├── index.html                   # Original flat HTML (archived)
+├── AGENT.md                     # Agent usage guide
+├── ITERATION_NOTES.md           # Data layer decision log
 └── README.md
 ```
 
 ## 🎯 Key Improvements Over Original HTML
 
-| Feature | Original HTML | New React App |
-|---------|---------------|---------------|
+| Feature | Original HTML | Current App |
+|---------|---------------|-------------|
 | **Architecture** | Single file | Modular components |
-| **Styling** | Inline CSS | Tailwind + Theme |
-| **Data Storage** | Hardcoded | D1 Database |
+| **Styling** | Inline CSS | Tailwind + Keel tokens |
+| **Data Storage** | Hardcoded | KV (user) + bundled JS (system) |
 | **User Templates** | ❌ None | ✅ Full CRUD |
 | **Search** | ❌ None | ✅ Full-text search |
 | **AI Features** | ❌ None | ✅ 8 enhancement types |
 | **Dark Mode** | ❌ None | ✅ Full support |
 | **Mobile** | Basic | Fully responsive |
 | **Deployment** | Static file | Cloudflare Workers |
-| **Scalability** | Limited | Production-ready |
 
 ## 🔮 Future Enhancements
 
@@ -357,20 +327,12 @@ CommunicationBuilder/
 - [ ] Template marketplace
 - [ ] Team collaboration
 - [ ] Export to multiple formats (PDF, DOCX)
-- [ ] Template categories management
 - [ ] AI-powered template suggestions
 - [ ] Integration with email clients
 
 ## 📝 License
 
 MIT License
-
-## 🙏 Acknowledgments
-
-- Design system inspired by [AgentBriefing](../AgentBriefing)
-- Built with [Cloudflare Workers](https://workers.cloudflare.com/)
-- AI powered by [Cloudflare AI](https://ai.cloudflare.com/)
-- Original templates from Communication Builder HTML
 
 ---
 
