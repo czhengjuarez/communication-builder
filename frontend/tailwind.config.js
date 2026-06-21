@@ -30,6 +30,18 @@ export default {
         sans:    ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
         mono:    ['JetBrains Mono', 'ui-monospace', 'SF Mono', 'Menlo', 'monospace'],
       },
+      fontSize: {
+        xs:    ['0.75rem',   { lineHeight: '1.15' }],  // of-text-xs   12px
+        sm:    ['0.8125rem', { lineHeight: '1.3'  }],  // of-text-sm   13px
+        base:  ['0.9375rem', { lineHeight: '1.55' }],  // of-text-base 15px
+        md:    ['1rem',      { lineHeight: '1.55' }],  // of-text-md   16px
+        lg:    ['1.125rem',  { lineHeight: '1.55' }],  // of-text-lg   18px
+        xl:    ['1.375rem',  { lineHeight: '1.3'  }],  // of-text-xl   22px
+        '2xl': ['1.75rem',   { lineHeight: '1.15' }],  // of-text-2xl  28px
+        '3xl': ['2.25rem',   { lineHeight: '1.15' }],  // of-text-3xl  36px
+        '4xl': ['3rem',      { lineHeight: '1.15' }],  // of-text-4xl  48px
+        '5xl': ['4rem',      { lineHeight: '1.15' }],  // of-text-5xl  64px
+      },
       borderRadius: {
         sm:    '6px',
         md:    '10px',
